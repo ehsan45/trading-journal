@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ژورنال معاملاتی احسان v2.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap');
+:root {
+  --bg:#080c16;--surface:#0f1622;--surface2:#151f30;--surface3:#1a2640;
+  --border:#1e2d45;--border2:#243450;
+  --gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:rgba(201,168,76,0.1);
+  --red:#e05252;--red-dim:rgba(224,82,82,0.08);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.07);
+  --blue:#60a5fa;
+  --text:#dde4f0;--text-muted:#6b7fa0;--text-dim:#3a4a60;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* TABS */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;gap:2px;position:sticky;top:0;z-index:100;}
+.tab{padding:14px 18px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab.active{color:var(--gold-light);border-bottom-color:var(--gold);}
+
+/* HEADER */
+.header{background:linear-gradient(160deg,#0c1525 0%,var(--bg) 100%);padding:28px 24px 20px;border-bottom:1px solid var(--border);}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.header h1{font-size:20px;font-weight:900;color:#fff;}
+.header h1 span{color:var(--gold);}
+.stats-row{display:flex;gap:8px;flex-wrap:wrap;}
+.stat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;display:flex;align-items:center;gap:6px;}
+.stat-pill .lbl{color:var(--text-muted);}
+.stat-pill .val{font-weight:700;}
+.val.green{color:var(--green);}
+.val.red{color:var(--red);}
+.val.gold{color:var(--gold-light);}
+
+/* PAGES */
+.page{display:none;padding:20px 24px 60px;max-width:980px;margin:0 auto;}
+.page.active{display:block;}
+
+/* FORM */
+.fsec{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:14px;}
+.fsec-title{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media(max-width:600px){.fgrid,.fgrid3{grid-template-columns:1fr;}}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:600;color:var(--text-muted);}
+input,select,textarea{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s;direction:rtl;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:rgba(201,168,76,0.4);}
+select option{background:var(--surface2);}
+textarea{resize:vertical;min-height:72px;}
+
+/* CHECKLIST */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+@media(max-width:500px){.check-grid{grid-template-columns:1fr;}}
+.clabel{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);cursor:pointer;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);transition:all .15s;}
+.clabel input[type=checkbox]{accent-color:var(--gold);width:13px;height:13px;flex-shrink:0;}
+.clabel:has(input:checked){border-color:rgba(201,168,76,0.35);color:var(--gold-light);}
+
+/* EMOTION */
+.emogrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:6px;}
+@media(max-width:480px){.emogrid{grid-template-columns:repeat(2,1fr);}}
+.ebtn{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 6px;cursor:pointer;text-align:center;transition:all .2s;font-family:'Vazirmatn',sans-serif;}
+.ebtn:hover{border-color:rgba(201,168,76,0.3);}
+.ebtn.sel{border-color:var(--gold);background:var(--gold-dim);}
+.eemo{font-size:18px;display:block;margin-bottom:3px;}
+.elbl{font-size:10px;color:var(--text-muted);}
+.ebtn.sel .elbl{color:var(--gold-light);}
+
+/* RATING */
+.rrow{display:flex;gap:7px;align-items:center;margin-top:6px;}
+.rbtn{width:34px;height:34px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);transition:all .15s;font-family:'Vazirmatn',sans-serif;}
+.rbtn:hover,.rbtn.sel{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light);}
+
+/* UPLOAD */
+.upzone{border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);position:relative;}
+.upzone:hover{border-color:rgba(201,168,76,0.4);background:var(--gold-dim);}
+.upzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.up-icon{font-size:24px;margin-bottom:6px;}
+.up-text{font-size:12px;color:var(--text-muted);}
+.up-preview{max-width:100%;max-height:180px;border-radius:8px;margin-top:10px;display:none;}
+
+/* SUBMIT */
+.btn-submit{width:100%;background:linear-gradient(135deg,#b8922e,var(--gold));border:none;border-radius:10px;padding:13px;color:#1a0f00;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .2s;margin-top:6px;}
+.btn-submit:hover{opacity:.9;}
+
+/* TRADE CARDS */
+.filters{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+.fbtn{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:'Vazirmatn',sans-serif;transition:all .15s;}
+.fbtn.active,.fbtn:hover{background:var(--gold-dim);border-color:rgba(201,168,76,0.3);color:var(--gold-light);}
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:9px;cursor:pointer;transition:border-color .2s;}
+.tcard:hover{border-color:var(--border2);}
+.tcard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:7px;}
+.tpair{font-size:14px;font-weight:800;color:#fff;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px;}
+.badge.buy{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2);}
+.badge.sell{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,82,82,0.2);}
+.badge.win{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2);}
+.badge.loss{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,82,82,0.2);}
+.badge.be{background:rgba(96,165,250,0.1);color:var(--blue);border:1px solid rgba(96,165,250,0.2);}
+.vbadge{display:inline-block;background:var(--red-dim);color:var(--red);border:1px solid rgba(224,82,82,0.2);font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
+.tpnl{font-size:15px;font-weight:800;}
+.tpnl.pos{color:var(--green);}
+.tpnl.neg{color:var(--red);}
+.tpnl.zero{color:var(--text-muted);}
+.tmeta{display:flex;gap:14px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;}
+.texpand{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.texpand.open{display:block;}
+.egrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;}
+.eitem .elabel{font-size:11px;color:var(--text-dim);margin-bottom:2px;}
+.eitem .evalue{font-size:12px;color:var(--text);font-weight:500;}
+.timg{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:8px;border:1px solid var(--border);}
+.tnotes{font-size:13px;color:var(--text-muted);line-height:1.7;background:var(--surface2);padding:10px 14px;border-radius:8px;margin-top:8px;}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:580px){.sgrid{grid-template-columns:1fr 1fr;}}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:center;}
+.scard .slbl{font-size:11px;color:var(--text-muted);margin-bottom:5px;}
+.scard .sval{font-size:22px;font-weight:900;}
+.barwrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.bartitle{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
+.brow{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+.blbl{font-size:11px;color:var(--text-muted);min-width:130px;}
+.btrack{flex:1;height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.bfill{height:100%;border-radius:4px;transition:width .5s;}
+.bfill.green{background:var(--green);}
+.bfill.red{background:var(--red);}
+.bfill.gold{background:var(--gold);}
+.bval{font-size:11px;font-weight:600;min-width:24px;text-align:right;color:var(--text-muted);}
+.insight-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.insight-item{font-size:13px;color:var(--text-muted);padding:8px 0;border-bottom:1px solid var(--border);line-height:1.6;}
+.insight-item:last-child{border-bottom:none;padding-bottom:0;}
+.phase-bar{background:var(--surface);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.phase-title{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:12px;}
+.phase-item{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);padding:6px 0;border-bottom:1px solid var(--border);}
+.phase-item:last-child{border-bottom:none;}
+.phase-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.phase-dot.ok{background:var(--green);}
+.phase-dot.no{background:var(--red);}
+.phase-dot.na{background:var(--text-dim);}
+.empty{text-align:center;padding:50px 20px;color:var(--text-muted);}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+.io-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--gold-light);cursor:pointer;font-family:'Vazirmatn',sans-serif;transition:all .2s;}
+.io-btn:hover{background:var(--gold-dim);border-color:rgba(201,168,76,0.4);}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:24px;min-width:280px;max-width:400px;text-align:center;}
+.modal-title{font-size:15px;font-weight:700;color:var(--gold-light);margin-bottom:12px;}
+.modal-text{font-size:13px;color:var(--text-muted);margin-bottom:18px;line-height:1.7;}
+.modal-btns{display:flex;gap:8px;justify-content:center;}
+.mbtn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;border:none;}
+.mbtn.confirm{background:linear-gradient(135deg,#b8922e,var(--gold));color:#1a0f00;}
+.mbtn.cancel{background:var(--surface2);border:1px solid var(--border2);color:var(--text-muted);}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('new')">➕ ثبت ترید</div>
+  <div class="tab" onclick="showTab('list')">📋 تریدها</div>
+  <div class="tab" onclick="showTab('stats')">📊 آمار</div>
+</div>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">ژورنال معاملاتی — نسخه ۲.۰</div>
+      <h1>احسان <span>— فاز ۱ (دمو)</span></h1>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+    <div id="hdate" style="font-size:11px;color:var(--text-muted);"></div>
+    <div style="display:flex;gap:6px;">
+      <button class="io-btn" onclick="exportData()">⬇ Export</button>
+      <button class="io-btn" onclick="document.getElementById('import-file').click()">⬆ Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-pill"><span class="lbl">کل</span><span class="val gold" id="hs-t">۰</span></div>
+    <div class="stat-pill"><span class="lbl">برد</span><span class="val green" id="hs-w">۰</span></div>
+    <div class="stat-pill"><span class="lbl">باخت</span><span class="val red" id="hs-l">۰</span></div>
+    <div class="stat-pill"><span class="lbl">Win Rate</span><span class="val gold" id="hs-wr">—</span></div>
+    <div class="stat-pill"><span class="lbl">P&L</span><span class="val" id="hs-pnl">۰٪</span></div>
+    <div class="stat-pill"><span class="lbl">نقض پلن</span><span class="val red" id="hs-v">۰</span></div>
+  </div>
+</div>
+
+<!-- NEW TRADE PAGE -->
+<div class="page active" id="page-new">
+
+  <!-- 1. اطلاعات پایه -->
+  <div class="fsec">
+    <div class="fsec-title">📌 اطلاعات پایه</div>
+    <div class="fgrid">
+      <div class="fg">
+        <label>جفت‌ارز / نماد</label>
+        <select id="f-pair">
+          <option value="">انتخاب...</option>
+          <option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option>
+          <option>USDCHF</option><option>AUDUSD</option><option>XAUUSD (Gold)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>تاریخ و ساعت ورود</label>
+        <input type="datetime-local" id="f-dt">
+      </div>
+      <div class="fg">
+        <label>جهت</label>
+        <select id="f-dir">
+          <option value="">انتخاب...</option>
+          <option value="buy">BUY — خرید</option>
+          <option value="sell">SELL — فروش</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>نتیجه</label>
+        <select id="f-res">
+          <option value="">انتخاب...</option>
+          <option value="win">Win ✅</option>
+          <option value="loss">Loss ❌</option>
+          <option value="be">Breakeven ⚖</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgrid3" style="margin-top:10px;">
+      <div class="fg"><label>ورود (Entry)</label><input type="number" step="0.00001" id="f-entry" placeholder="قیمت ورود"></div>
+      <div class="fg"><label>استاپ لاس (SL)</label><input type="number" step="0.00001" id="f-sl" placeholder="SL"></div>
+      <div class="fg"><label>تیک پروفیت (TP)</label><input type="number" step="0.00001" id="f-tp" placeholder="TP"></div>
+      <div class="fg"><label>RR واقعی</label><input type="number" step="0.1" id="f-rr" placeholder="مثلاً ۳"></div>
+      <div class="fg"><label>P&L (٪ حساب)</label><input type="number" step="0.01" id="f-pnl" placeholder="مثبت یا منفی"></div>
+      <div class="fg"><label>تایم‌فریم ورود</label>
+        <select id="f-tf">
+          <option value="">انتخاب...</option>
+          <option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. تحلیل بایاس -->
+  <div class="fsec">
+    <div class="fsec-title">🧭 تحلیل بایاس</div>
+    <div class="fgrid">
+      <div class="fg">
+        <label>بایاس Daily (بعد از آسیا)</label>
+        <select id="f-bias-d">
+          <option value="">انتخاب...</option>
+          <option>Bullish صعودی</option><option>Bearish نزولی</option><option>Neutral خنثی</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>بایاس H4/H1</label>
+        <select id="f-bias-h">
+          <option value="">انتخاب...</option>
+          <option>Bullish صعودی</option><option>Bearish نزولی</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>تایم‌فریم Range اصلی</label>
+        <select id="f-range-tf">
+          <option value="">انتخاب...</option>
+          <option>H4</option><option>H1</option><option>M30</option><option>M15</option><option>M5 (nested)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>تایم‌فریم POI</label>
+        <select id="f-poi-tf">
+          <option value="">انتخاب...</option>
+          <option>H4</option><option>H1</option><option>M30</option><option>M15</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgrid" style="margin-top:10px;">
+      <div class="fg">
+        <label>وضعیت نقدینگی داخلی رنج</label>
+        <select id="f-liq">
+          <option value="">انتخاب...</option>
+          <option value="has">نقدینگی داخلی داشتم ✅</option>
+          <option value="t2">نداشتم — منتظر T2 ماندم</option>
+          <option value="none">نداشتم — بدون T2 وارد شدم ❌</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>بررسی T1 / T2</label>
+        <select id="f-trap">
+          <option value="">انتخاب...</option>
+          <option value="none">T1/T2 وجود نداشت</option>
+          <option value="t1-ok">T1 شناسایی شد — از ورود اجتناب کردم ✅</option>
+          <option value="t1-fail">T1 بود — متوجه نشدم و وارد شدم ❌</option>
+          <option value="t2-ok">T2 شناسایی شد — صبر کردم ✅</option>
+          <option value="t2-fail">T2 بود — متوجه نشدم ❌</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg full" style="margin-top:10px;">
+      <label>نوع ستاپ ورود</label>
+      <select id="f-setup">
+        <option value="">انتخاب...</option>
+        <option>نقدینگی داخلی برداشته شد + POI + ورود مستقیم</option>
+        <option>Nested Range — رنج کوچک در دل رنج بزرگ</option>
+        <option>T2 — انتظار برای القا و ورود بعد از شکار نقدینگی</option>
+        <option>QM + BOS + ورود در پول‌بک</option>
+        <option>سایر</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 3. چک‌لیست پلن -->
+  <div class="fsec">
+    <div class="fsec-title">✅ چک‌لیست پلن — موارد رعایت شده</div>
+    <div class="check-grid">
+      <label class="clabel"><input type="checkbox" data-c="daily-bias"> بایاس Daily بعد از آسیا مشخص شد</label>
+      <label class="clabel"><input type="checkbox" data-c="range"> Range در تایم معتبر شناسایی شد</label>
+      <label class="clabel"><input type="checkbox" data-c="poi"> POI طبق قانون تایم‌فریم پیدا شد</label>
+      <label class="clabel"><input type="checkbox" data-c="liq-check"> نقدینگی داخلی بررسی شد</label>
+      <label class="clabel"><input type="checkbox" data-c="t1t2"> T1 و T2 بررسی شدند</label>
+      <label class="clabel"><input type="checkbox" data-c="killzone"> در Kill Zone نیویورک (۱۶-۲۰) بودم</label>
+      <label class="clabel"><input type="checkbox" data-c="news"> خبر مهمی در ۱۵ دقیقه نبود</label>
+      <label class="clabel"><input type="checkbox" data-c="rr"> RR حداقل ۱:۲ بود</label>
+      <label class="clabel"><input type="checkbox" data-c="daily-limit"> به حد ضرر/سود روزانه نرسیده بودم</label>
+      <label class="clabel"><input type="checkbox" data-c="calm"> احساسم آرام بود — ترید جبرانی نبود</label>
+    </div>
+    <div class="fg" style="margin-top:12px;">
+      <label>نقض پلن (اگر بود)</label>
+      <select id="f-viol">
+        <option value="">ندارم — پلن رعایت شد ✅</option>
+        <option value="revenge">ترید جبرانی ❌</option>
+        <option value="no-analysis">تحلیل کامل نبود — وارد شدم ❌</option>
+        <option value="t1-ignored">T1 را نادیده گرفتم ❌</option>
+        <option value="sl-move">استاپ لاس جابجا کردم ❌</option>
+        <option value="out-killzone">خارج از Kill Zone ترید کردم ❌</option>
+        <option value="news-trade">در خبر ترید کردم ❌</option>
+        <option value="overlimit">بیش از ۴ ترید در روز ❌</option>
+        <option value="other">سایر ❌</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 4. مدیریت معامله -->
+  <div class="fsec">
+    <div class="fsec-title">⚙️ مدیریت معامله</div>
+    <div class="fgrid">
+      <div class="fg">
+        <label>موقعیت استاپ لاس</label>
+        <select id="f-sl-pos">
+          <option value="">انتخاب...</option>
+          <option>زیر POI — M30</option>
+          <option>زیر POI — M15</option>
+          <option>زیر POI — H1</option>
+          <option>سایر</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>هدف (TP)</label>
+        <select id="f-tp-target">
+          <option value="">انتخاب...</option>
+          <option>سقف رنج</option>
+          <option>TP3</option>
+          <option>TP5</option>
+          <option>نقدینگی خارجی</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Partial Close انجام دادم؟</label>
+        <select id="f-partial">
+          <option value="">انتخاب...</option>
+          <option value="yes">بله — در TP3 بخشی بستم</option>
+          <option value="no">خیر</option>
+          <option value="na">نبود (TP3 نبود هدف)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>کیفیت اجرا (۱ تا ۵)</label>
+        <div class="rrow" id="exec-r">
+          <button class="rbtn" onclick="setR(1)">۱</button>
+          <button class="rbtn" onclick="setR(2)">۲</button>
+          <button class="rbtn" onclick="setR(3)">۳</button>
+          <button class="rbtn" onclick="setR(4)">۴</button>
+          <button class="rbtn" onclick="setR(5)">۵</button>
+        </div>
+        <input type="hidden" id="f-rating">
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. روانشناسی -->
+  <div class="fsec">
+    <div class="fsec-title">🧠 روانشناسی</div>
+    <div class="fg" style="margin-bottom:14px;">
+      <label>احساس قبل از ترید</label>
+      <div class="emogrid" id="emo-before">
+        <div class="ebtn" onclick="setEmo('before','calm')"><span class="eemo">😌</span><span class="elbl">آرام</span></div>
+        <div class="ebtn" onclick="setEmo('before','confident')"><span class="eemo">💪</span><span class="elbl">مطمئن</span></div>
+        <div class="ebtn" onclick="setEmo('before','nervous')"><span class="eemo">😰</span><span class="elbl">عصبی</span></div>
+        <div class="ebtn" onclick="setEmo('before','revenge')"><span class="eemo">😤</span><span class="elbl">انتقام‌جو</span></div>
+        <div class="ebtn" onclick="setEmo('before','greedy')"><span class="eemo">🤑</span><span class="elbl">طمع</span></div>
+        <div class="ebtn" onclick="setEmo('before','fear')"><span class="eemo">😨</span><span class="elbl">ترس از ضرر</span></div>
+        <div class="ebtn" onclick="setEmo('before','fomo')"><span class="eemo">🏃</span><span class="elbl">FOMO</span></div>
+        <div class="ebtn" onclick="setEmo('before','neutral')"><span class="eemo">😐</span><span class="elbl">خنثی</span></div>
+      </div>
+      <input type="hidden" id="f-emo-b">
+    </div>
+    <div class="fg">
+      <label>احساس بعد از ترید</label>
+      <div class="emogrid" id="emo-after">
+        <div class="ebtn" onclick="setEmo('after','satisfied')"><span class="eemo">😊</span><span class="elbl">راضی</span></div>
+        <div class="ebtn" onclick="setEmo('after','proud')"><span class="eemo">🎯</span><span class="elbl">به پلن پایبند</span></div>
+        <div class="ebtn" onclick="setEmo('after','regret')"><span class="eemo">😞</span><span class="elbl">پشیمان</span></div>
+        <div class="ebtn" onclick="setEmo('after','angry')"><span class="eemo">😡</span><span class="elbl">عصبانی</span></div>
+        <div class="ebtn" onclick="setEmo('after','anxious')"><span class="eemo">😟</span><span class="elbl">نگران</span></div>
+        <div class="ebtn" onclick="setEmo('after','neutral')"><span class="eemo">😐</span><span class="elbl">خنثی</span></div>
+        <div class="ebtn" onclick="setEmo('after','relief')"><span class="eemo">😮‍💨</span><span class="elbl">آرامش بعد ضرر</span></div>
+        <div class="ebtn" onclick="setEmo('after','over')"><span class="eemo">🦁</span><span class="elbl">بیش از حد مطمئن</span></div>
+      </div>
+      <input type="hidden" id="f-emo-a">
+    </div>
+  </div>
+
+  <!-- 6. یادداشت و چارت -->
+  <div class="fsec">
+    <div class="fsec-title">📝 یادداشت و تصویر چارت</div>
+    <div class="fg" style="margin-bottom:12px;">
+      <label>یادداشت — چرا وارد شدم؟ چه اتفاقی افتاد؟ درس؟</label>
+      <textarea id="f-notes" placeholder="تحلیل، اتفاقات حین معامله، درسی که گرفتم، دفعه بعد چه می‌کنم..."></textarea>
+    </div>
+    <div class="fg">
+      <label>تصویر چارت</label>
+      <div class="upzone">
+        <input type="file" accept="image/*" id="f-img" onchange="prevImg(event)">
+        <div class="up-icon">📸</div>
+        <div class="up-text" id="up-txt">تصویر چارت را اینجا بکشید یا کلیک کنید</div>
+        <img class="up-preview" id="img-prev">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-submit" onclick="saveTrade()">ثبت معامله ✓</button>
+</div>
+
+<!-- LIST PAGE -->
+<div class="page" id="page-list">
+  <div class="filters">
+    <button class="fbtn active" onclick="filterT('all',this)">همه</button>
+    <button class="fbtn" onclick="filterT('win',this)">✅ برد</button>
+    <button class="fbtn" onclick="filterT('loss',this)">❌ باخت</button>
+    <button class="fbtn" onclick="filterT('violation',this)">⚠ نقض پلن</button>
+    <button class="fbtn" onclick="filterT('revenge',this)">😤 ترید جبرانی</button>
+  </div>
+  <div id="tlist"></div>
+</div>
+
+<!-- STATS PAGE -->
+<div class="page" id="page-stats">
+  <div id="sgrid" class="sgrid"></div>
+  <div id="sbars"></div>
+  <div id="sphase"></div>
+  <div id="sinsights"></div>
+</div>
+
+<script>
+let trades = JSON.parse(localStorage.getItem('ehsan-j2') || '[]');
+let eB='',eA='',rating=0,curFilter='all';
+
+// Init
+document.getElementById('hdate').textContent = new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+document.getElementById('f-dt').value=now.toISOString().slice(0,16);
+updateHeader();
+
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const tabs=['new','list','stats'];
+  document.querySelectorAll('.tab')[tabs.indexOf(t)].classList.add('active');
+  document.getElementById('page-'+t).classList.add('active');
+  if(t==='list') renderList();
+  if(t==='stats') renderStats();
+}
+
+function setEmo(when,val){
+  const c=document.getElementById('emo-'+when);
+  c.querySelectorAll('.ebtn').forEach(b=>b.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+  if(when==='before'){eB=val;document.getElementById('f-emo-b').value=val;}
+  else{eA=val;document.getElementById('f-emo-a').value=val;}
+}
+
+function setR(n){
+  rating=n;document.getElementById('f-rating').value=n;
+  document.querySelectorAll('#exec-r .rbtn').forEach((b,i)=>b.classList.toggle('sel',i<n));
+}
+
+function prevImg(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=document.getElementById('img-prev');
+    img.src=ev.target.result; img.style.display='block';
+    document.getElementById('up-txt').style.display='none';
+    document.querySelector('.up-icon').style.display='none';
+  };
+  r.readAsDataURL(f);
+}
+
+function getChecks(){
+  const c={};
+  document.querySelectorAll('[data-c]').forEach(x=>c[x.dataset.c]=x.checked);
+  return c;
+}
+
+function saveTrade(){
+  const pair=document.getElementById('f-pair').value;
+  const res=document.getElementById('f-res').value;
+  if(!pair||!res){alert('لطفاً جفت‌ارز و نتیجه را وارد کنید.');return;}
+  const img=document.getElementById('img-prev').src||'';
+  const t={
+    id:Date.now(),
+    pair,dt:document.getElementById('f-dt').value,
+    dir:document.getElementById('f-dir').value,
+    res,
+    entry:document.getElementById('f-entry').value,
+    sl:document.getElementById('f-sl').value,
+    tp:document.getElementById('f-tp').value,
+    rr:document.getElementById('f-rr').value,
+    pnl:parseFloat(document.getElementById('f-pnl').value)||0,
+    tf:document.getElementById('f-tf').value,
+    biasD:document.getElementById('f-bias-d').value,
+    biasH:document.getElementById('f-bias-h').value,
+    rangeTf:document.getElementById('f-range-tf').value,
+    poiTf:document.getElementById('f-poi-tf').value,
+    liq:document.getElementById('f-liq').value,
+    trap:document.getElementById('f-trap').value,
+    setup:document.getElementById('f-setup').value,
+    slPos:document.getElementById('f-sl-pos').value,
+    tpTarget:document.getElementById('f-tp-target').value,
+    partial:document.getElementById('f-partial').value,
+    viol:document.getElementById('f-viol').value,
+    checks:getChecks(),
+    emoB:eB,emoA:eA,rating,
+    notes:document.getElementById('f-notes').value,
+    img:img.startsWith('data:')?img:''
+  };
+  trades.unshift(t);
+  localStorage.setItem('ehsan-j2',JSON.stringify(trades));
+  updateHeader(); resetForm();
+  alert('✅ معامله ثبت شد!');
+  showTab('list');
+}
+
+function resetForm(){
+  ['f-pair','f-dir','f-res','f-bias-d','f-bias-h','f-range-tf','f-poi-tf','f-liq','f-trap','f-setup','f-sl-pos','f-tp-target','f-partial','f-viol','f-tf'].forEach(id=>document.getElementById(id).value='');
+  ['f-entry','f-sl','f-tp','f-rr','f-pnl','f-notes','f-emo-b','f-emo-a','f-rating'].forEach(id=>document.getElementById(id).value='');
+  eB='';eA='';rating=0;
+  document.querySelectorAll('.ebtn,.rbtn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('[data-c]').forEach(c=>c.checked=false);
+  const img=document.getElementById('img-prev');
+  img.src='';img.style.display='none';
+  document.getElementById('up-txt').style.display='block';
+  document.querySelector('.up-icon').style.display='block';
+  document.getElementById('f-img').value='';
+  const n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());
+  document.getElementById('f-dt').value=n.toISOString().slice(0,16);
+}
+
+function updateHeader(){
+  const w=trades.filter(t=>t.res==='win').length;
+  const l=trades.filter(t=>t.res==='loss').length;
+  const tot=trades.length;
+  const wr=tot?Math.round(w/tot*100):0;
+  const pnl=trades.reduce((s,t)=>s+(t.pnl||0),0).toFixed(2);
+  const viol=trades.filter(t=>t.viol&&t.viol!=='').length;
+  document.getElementById('hs-t').textContent=tot;
+  document.getElementById('hs-w').textContent=w;
+  document.getElementById('hs-l').textContent=l;
+  document.getElementById('hs-wr').textContent=tot?wr+'٪':'—';
+  const pEl=document.getElementById('hs-pnl');
+  pEl.textContent=(pnl>=0?'+':'')+pnl+'٪';
+  pEl.className='val '+(pnl>0?'green':pnl<0?'red':'gold');
+  document.getElementById('hs-v').textContent=viol;
+}
+
+const EL={
+  calm:'آرام',confident:'مطمئن',nervous:'عصبی',revenge:'انتقام‌جو',
+  greedy:'طمع',fear:'ترس',fomo:'FOMO',neutral:'خنثی',
+  satisfied:'راضی',proud:'به پلن پایبند',regret:'پشیمان',
+  angry:'عصبانی',anxious:'نگران',relief:'آرامش',over:'بیش از حد مطمئن'
+};
+const VL={
+  revenge:'ترید جبرانی','no-analysis':'تحلیل کامل نبود',
+  't1-ignored':'T1 نادیده گرفته شد','sl-move':'استاپ جابجا شد',
+  'out-killzone':'خارج از Kill Zone','news-trade':'در خبر ترید',
+  overlimit:'بیش از ۴ ترید',other:'سایر'
+};
+
+function filterT(f,btn){
+  curFilter=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+function renderList(){
+  const c=document.getElementById('tlist');
+  let filtered=trades;
+  if(curFilter==='win') filtered=trades.filter(t=>t.res==='win');
+  else if(curFilter==='loss') filtered=trades.filter(t=>t.res==='loss');
+  else if(curFilter==='violation') filtered=trades.filter(t=>t.viol&&t.viol!=='');
+  else if(curFilter==='revenge') filtered=trades.filter(t=>t.viol==='revenge'||t.emoB==='revenge');
+  if(!filtered.length){
+    c.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><div>هنوز معامله‌ای در این دسته نیست</div></div>`;return;
+  }
+  const checksCount=10;
+  c.innerHTML=filtered.map(t=>{
+    const dt=t.dt?new Date(t.dt).toLocaleString('fa-IR'):'—';
+    const pc=t.pnl>0?'pos':t.pnl<0?'neg':'zero';
+    const ps=t.pnl?(t.pnl>0?'+':'')+t.pnl+'٪':'—';
+    const ck=Object.values(t.checks||{}).filter(Boolean).length;
+    const hv=t.viol&&t.viol!=='';
+    return `<div class="tcard" onclick="toggleExp(${t.id})">
+      <div class="tcard-top">
+        <div class="tpair">
+          ${t.pair}
+          ${t.dir?`<span class="badge ${t.dir}">${t.dir==='buy'?'BUY':'SELL'}</span>`:''}
+          <span class="badge ${t.res}">${t.res==='win'?'Win':t.res==='loss'?'Loss':'BE'}</span>
+          ${hv?`<span class="vbadge">⚠ ${VL[t.viol]||t.viol}</span>`:''}
+        </div>
+        <div class="tpnl ${pc}">${ps}</div>
+      </div>
+      <div class="tmeta">
+        <span>🕐 ${dt}</span>
+        <span>📐 RR: ${t.rr||'—'}</span>
+        <span>✅ چک‌لیست: ${ck}/${checksCount}</span>
+        ${t.emoB?`<span>😶 ${EL[t.emoB]||t.emoB}</span>`:''}
+        ${t.rating?`<span>⭐ ${t.rating}/۵</span>`:''}
+      </div>
+      <div class="texpand" id="exp-${t.id}">
+        <div class="egrid">
+          <div class="eitem"><div class="elabel">بایاس Daily</div><div class="evalue">${t.biasD||'—'}</div></div>
+          <div class="eitem"><div class="elabel">بایاس H4/H1</div><div class="evalue">${t.biasH||'—'}</div></div>
+          <div class="eitem"><div class="elabel">تایم‌فریم Range</div><div class="evalue">${t.rangeTf||'—'}</div></div>
+          <div class="eitem"><div class="elabel">تایم‌فریم POI</div><div class="evalue">${t.poiTf||'—'}</div></div>
+          <div class="eitem"><div class="elabel">نقدینگی داخلی</div><div class="evalue">${t.liq==='has'?'داشتم ✅':t.liq==='t2'?'T2 — صبر کردم':t.liq==='none'?'نداشتم ❌':'—'}</div></div>
+          <div class="eitem"><div class="elabel">T1/T2</div><div class="evalue">${t.trap||'—'}</div></div>
+          <div class="eitem"><div class="elabel">ستاپ</div><div class="evalue">${t.setup||'—'}</div></div>
+          <div class="eitem"><div class="elabel">موقعیت SL</div><div class="evalue">${t.slPos||'—'}</div></div>
+          <div class="eitem"><div class="elabel">هدف TP</div><div class="evalue">${t.tpTarget||'—'}</div></div>
+          <div class="eitem"><div class="elabel">Partial Close</div><div class="evalue">${t.partial==='yes'?'بله ✅':t.partial==='no'?'خیر':'—'}</div></div>
+          <div class="eitem"><div class="elabel">احساس قبل</div><div class="evalue">${EL[t.emoB]||'—'}</div></div>
+          <div class="eitem"><div class="elabel">احساس بعد</div><div class="evalue">${EL[t.emoA]||'—'}</div></div>
+        </div>
+        ${t.notes?`<div class="tnotes">${t.notes}</div>`:''}
+        ${t.img?`<img class="timg" src="${t.img}">`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExp(id){
+  document.getElementById('exp-'+id).classList.toggle('open');
+}
+
+function renderStats(){
+  if(!trades.length){
+    document.getElementById('sgrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📊</div><div>هنوز داده‌ای نیست</div></div>`;
+    ['sbars','sphase','sinsights'].forEach(id=>document.getElementById(id).innerHTML='');
+    return;
+  }
+  const tot=trades.length;
+  const w=trades.filter(t=>t.res==='win').length;
+  const l=trades.filter(t=>t.res==='loss').length;
+  const wr=tot?Math.round(w/tot*100):0;
+  const pnl=trades.reduce((s,t)=>s+(t.pnl||0),0).toFixed(2);
+  const viols=trades.filter(t=>t.viol&&t.viol!=='').length;
+  const avgRR=trades.filter(t=>t.rr).length?(trades.filter(t=>t.rr).reduce((s,t)=>s+parseFloat(t.rr),0)/trades.filter(t=>t.rr).length).toFixed(1):'—';
+  const avgR=trades.filter(t=>t.rating).length?(trades.filter(t=>t.rating).reduce((s,t)=>s+t.rating,0)/trades.filter(t=>t.rating).length).toFixed(1):'—';
+  const revenge=trades.filter(t=>t.viol==='revenge'||t.emoB==='revenge').length;
+
+  document.getElementById('sgrid').innerHTML=`
+    <div class="scard"><div class="slbl">کل تریدها</div><div class="sval gold">${tot}</div></div>
+    <div class="scard"><div class="slbl">Win Rate</div><div class="sval ${wr>=60?'green':'red'}">${wr}٪</div></div>
+    <div class="scard"><div class="slbl">P&L کل</div><div class="sval ${pnl>=0?'green':'red'}">${pnl>=0?'+':''}${pnl}٪</div></div>
+    <div class="scard"><div class="slbl">میانگین RR</div><div class="sval ${parseFloat(avgRR)>=3?'green':'gold'}">${avgRR}</div></div>
+    <div class="scard"><div class="slbl">کیفیت اجرا</div><div class="sval gold">${avgR}/۵</div></div>
+    <div class="scard"><div class="slbl">نقض پلن</div><div class="sval ${viols>0?'red':'green'}">${viols}</div></div>
+  `;
+
+  // Bars
+  const calm=trades.filter(t=>t.emoB==='calm').length;
+  const nerv=trades.filter(t=>t.emoB==='nervous'||t.emoB==='revenge').length;
+  const t1ok=trades.filter(t=>t.trap==='t1-ok').length;
+  const t1fail=trades.filter(t=>t.trap==='t1-fail').length;
+  const t2ok=trades.filter(t=>t.trap==='t2-ok').length;
+  document.getElementById('sbars').innerHTML=`
+    <div class="barwrap">
+      <div class="bartitle">توزیع نتایج</div>
+      ${bar('برد',w,tot,'green')}
+      ${bar('باخت',l,tot,'red')}
+      ${bar('نقض پلن',viols,tot,'red')}
+      ${bar('ترید جبرانی',revenge,tot,'red')}
+    </div>
+    <div class="barwrap">
+      <div class="bartitle">احساس قبل از ترید</div>
+      ${bar('آرام 😌',calm,tot,'green')}
+      ${bar('عصبی/انتقامی 😤',nerv,tot,'red')}
+    </div>
+    <div class="barwrap">
+      <div class="bartitle">شناسایی T1 / T2</div>
+      ${bar('T1 شناسایی شد ✅',t1ok,tot,'green')}
+      ${bar('T1 نادیده گرفته شد ❌',t1fail,tot,'red')}
+      ${bar('T2 شناسایی شد ✅',t2ok,tot,'gold')}
+    </div>
+  `;
+
+  // Phase upgrade progress
+  const last15=trades.slice(0,15);
+  const revengeIn15=last15.filter(t=>t.viol==='revenge').length;
+  const wrOk=wr>=60;
+  const rrOk=parseFloat(avgRR)>=3;
+  const totOk=tot>=30;
+  const noRevenge=revengeIn15===0;
+  document.getElementById('sphase').innerHTML=`
+    <div class="phase-bar">
+      <div class="phase-title">🏁 پیشرفت به سمت فاز ۲</div>
+      <div class="phase-item"><div class="phase-dot ${totOk?'ok':'no'}"></div>حداقل ۳۰ ترید — الان: ${tot} ترید</div>
+      <div class="phase-item"><div class="phase-dot ${wrOk?'ok':'no'}"></div>Win Rate حداقل ۶۰٪ — الان: ${wr}٪</div>
+      <div class="phase-item"><div class="phase-dot ${rrOk?'ok':'no'}"></div>میانگین RR حداقل ۱:۳ — الان: ${avgRR}</div>
+      <div class="phase-item"><div class="phase-dot ${noRevenge?'ok':'no'}"></div>صفر ترید جبرانی در ۱۵ ترید اخیر — الان: ${revengeIn15} مورد</div>
+      <div class="phase-item"><div class="phase-dot na"></div>رعایت کامل ریسک روزانه (بررسی دستی)</div>
+      <div class="phase-item"><div class="phase-dot na"></div>حس آمادگی ذهنی شخصی</div>
+    </div>
+  `;
+
+  // Insights
+  let ins=[];
+  if(revenge>0) ins.push(`⚠ <strong>${revenge} ترید جبرانی</strong> ثبت شده — این مهم‌ترین خطر توئه، مراقب باش`);
+  if(t1fail>0) ins.push(`❌ <strong>${t1fail} بار</strong> تله T1 رو نادیده گرفتی — قبل از ورود حتماً T1/T2 بررسی کن`);
+  if(wr>=60) ins.push(`✅ Win Rate عالی: <strong>${wr}٪</strong>`);
+  if(parseFloat(avgRR)>=3) ins.push(`✅ میانگین RR خوب: <strong>${avgRR}</strong>`);
+  if(viols===0&&tot>=5) ins.push(`🏆 تا اینجا هیچ نقض پلنی نداشتی — ادامه بده`);
+  if(tot>=30&&wrOk&&rrOk&&noRevenge) ins.push(`🎯 تبریک! شرایط ارتقا به فاز ۲ (پراپ) رو داری`);
+  document.getElementById('sinsights').innerHTML=ins.length?`
+    <div class="insight-box">
+      <div class="bartitle">بینش‌ها</div>
+      ${ins.map(i=>`<div class="insight-item">${i}</div>`).join('')}
+    </div>`:'';
+}
+
+function bar(lbl,val,tot,cls){
+  const pct=tot?Math.round(val/tot*100):0;
+  return `<div class="brow"><div class="blbl">${lbl}</div><div class="btrack"><div class="bfill ${cls}" style="width:${pct}%"></div></div><div class="bval">${val}</div></div>`;
+}
+
+function exportData(){
+  if(!trades.length){showMsg('هنوز داده‌ای نیست','هیچ تریدی ثبت نشده که بتونی Export کنی.');return;}
+  const data={version:'2.0',exportDate:new Date().toISOString(),trades};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const d=new Date().toLocaleDateString('fa-IR').replace(/\//g,'-');
+  a.download='ehsan-journal-'+d+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showMsg('Export موفق ✅','فایل ژورنالت دانلود شد. این فایل رو در جای امنی نگه‌دار.');
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      const count=(data.trades||[]).length;
+      if(!count){showMsg('خطا ❌','فایل معتبر نیست یا هیچ تریدی در آن نیست.');return;}
+      showConfirm(
+        'Import داده‌ها',
+        count+' ترید پیدا شد. اگر Import کنی، داده‌های فعلی جایگزین می‌شن. ادامه می‌دی؟',
+        ()=>{
+          trades=data.trades;
+          localStorage.setItem('ehsan-j2',JSON.stringify(trades));
+          updateHeader();
+          closeModal();
+          showMsg('Import موفق ✅',count+' ترید با موفقیت بارگذاری شد.');
+        }
+      );
+    }catch(err){showMsg('خطا ❌','فایل خراب است یا قابل خواندن نیست.');}
+  };
+  r.readAsText(file);
+  e.target.value='';
+}
+
+function showMsg(title,text){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-text').textContent=text;
+  document.getElementById('modal-btns').innerHTML='<button class="mbtn confirm" onclick="closeModal()">باشه</button>';
+  document.getElementById('modal').classList.add('open');
+}
+
+function showConfirm(title,text,onConfirm){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-text').textContent=text;
+  document.getElementById('modal-btns').innerHTML=
+    '<button class="mbtn cancel" onclick="closeModal()">انصراف</button>'+
+    '<button class="mbtn confirm" onclick="confirmAction()">بله، ادامه بده</button>';
+  window._confirmCb=onConfirm;
+  document.getElementById('modal').classList.add('open');
+}
+
+function confirmAction(){if(window._confirmCb){window._confirmCb();window._confirmCb=null;}}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-text" id="modal-text"></div>
+    <div class="modal-btns" id="modal-btns"></div>
+  </div>
+</div>
+</body>
+</html>
