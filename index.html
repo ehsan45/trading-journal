@@ -131,6 +131,10 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);f
 .bg-red{background:var(--red-dim);color:var(--red);}
 .chart-preview{width:100%;border-radius:var(--rs);border:1px solid var(--border);margin-top:8px;cursor:pointer;display:none;}
 .chart-full{width:100%;border-radius:var(--rs);border:1px solid var(--border);margin-top:10px;cursor:pointer;}
+.lightbox-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;align-items:center;justify-content:center;}
+.lightbox-overlay.on{display:flex;}
+.lightbox-overlay img{max-width:95vw;max-height:90vh;border-radius:var(--rs);object-fit:contain;}
+.lightbox-close{position:absolute;top:14px;left:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:38px;height:38px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .empty{text-align:center;padding:40px 20px;color:var(--text3);}
 .empty-ic{font-size:38px;margin-bottom:9px;}
@@ -483,6 +487,12 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);f
   <p style="font-size:11px;color:var(--text3);text-align:center;padding-bottom:4px">آخرین ذخیره: <span id="plan-saved-at">—</span></p>
 </div>
 
+<!-- LIGHTBOX -->
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="چارت">
+</div>
+
 <!-- DETAIL MODAL -->
 <div class="overlay" id="det-overlay">
   <div class="modal">
@@ -809,15 +819,19 @@ function calcRR() {
   });
 
   if (!isNaN(exit)) {
-    var distE  = Math.abs(exit - entry);
-    var rrE    = (distE / slDist).toFixed(2);
-    var isProfit = curDir === 'Buy' ? exit > entry : curDir === 'Sell' ? exit < entry : distE > 0;
-    var finalRR  = isProfit ? parseFloat(rrE) : -1;
-    html += '<div class="rrrow rrtotal"><span style="color:var(--text);font-weight:600">R:R نهایی</span><span class="rrval" style="color:' + (finalRR >= 0 ? 'var(--green)' : 'var(--red)') + ';font-size:14px">' + finalRR + 'R</span></div>';
-    document.getElementById('t-rr').value = finalRR;
-  } else if (lastRR) {
-    document.getElementById('t-rr').value = lastRR;
+    if (!curDir) {
+      // Bug 1 fix: no direction → don't show final R:R, leave field empty
+      document.getElementById('t-rr').value = '';
+    } else {
+      var distE  = Math.abs(exit - entry);
+      var rrE    = (distE / slDist).toFixed(2);
+      var isProfit = curDir === 'Buy' ? exit > entry : exit < entry;
+      var finalRR  = isProfit ? parseFloat(rrE) : -parseFloat(rrE);
+      html += '<div class="rrrow rrtotal"><span style="color:var(--text);font-weight:600">R:R نهایی</span><span class="rrval" style="color:' + (finalRR >= 0 ? 'var(--green)' : 'var(--red)') + ';font-size:14px">' + finalRR + 'R</span></div>';
+      document.getElementById('t-rr').value = finalRR;
+    }
   }
+  // Bug 4 fix: when no exit price, don't auto-fill t-rr with last TP value
 
   rows.innerHTML = html || '<div style="font-size:12px;color:var(--text3)">مقادیر TP را وارد کن تا R:R محاسبه بشه</div>';
 }
@@ -871,11 +885,13 @@ async function saveTrade() {
     try {
       await dbPut('trades', trade);
       trades.unshift(trade);
+      sortTrades();
       resetForm();
       showToast('معامله ثبت شد ✅', 'ok');
       renderDash();
+      if (document.getElementById('page-trades').classList.contains('on')) renderTrades();
     } catch(err) {
-      showToast('خطا در ذخیره: فضا کافی نیست', 'err');
+      showToast('خطا در ذخیره‌سازی داده‌ها ❌', 'err');
     }
   }
 
@@ -938,7 +954,7 @@ function getPeriodTrades(p) {
   var now = new Date();
   return trades.filter(function(t) {
     var d = new Date(t.date);
-    if (p === 'weekly')   return (now - d) / 864e5 <= 6;   // FIX: was <=7
+    if (p === 'weekly')   return (now - d) / 864e5 <= 7;
     if (p === 'monthly')  return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
     if (p === 'biannual') return (now - d) / 864e5 <= 182;
     if (p === 'yearly')   return d.getFullYear()===now.getFullYear();
@@ -1110,9 +1126,18 @@ function openDet(id) {
     '<div class="dr"><span class="dl">حالت ذهنی</span><span class="dv">'+(esc(t.mood)||'—')+'</span></div>'+
     (t.violations&&t.violations.length?'<div class="dr"><span class="dl" style="color:var(--red)">نقض پلن</span><span class="dv" style="color:var(--red);font-size:11px">'+t.violations.map(esc).join('<br>')+'</span></div>':'')+
     (t.note ?'<div class="dnote">'+esc(t.note)+'</div>':'')+
-    (t.chart?'<img src="'+t.chart+'" class="chart-full" onclick="window.open(this.src)" title="کلیک برای بزرگنمایی">':'');
+    (t.chart?'<img src="'+t.chart+'" class="chart-full" onclick="openLightbox(this.src)" title="کلیک برای بزرگنمایی">':'');
 
   document.getElementById('det-overlay').classList.add('on');
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-overlay').classList.add('on');
+}
+function closeLightbox() {
+  document.getElementById('lightbox-overlay').classList.remove('on');
+  document.getElementById('lightbox-img').src = '';
 }
 
 function closeOverlay(id) {
@@ -1222,7 +1247,7 @@ function openEdit() {
     '<div class="fg"><label class="fl">یادداشت</label><textarea class="fta" id="e-note">'+esc(t.note||'')+'</textarea></div>'+
     '<div class="fg"><label class="fl">عکس چارت جدید <span style="color:var(--text3);font-weight:400">(اختیاری — جایگزین عکس قبلی میشه)</span></label>'+
     '<input type="file" class="fi" id="e-chart" accept="image/*" style="direction:ltr;padding:8px 10px;font-size:12px;color:var(--text2)"></div>'+
-    (t.chart ? '<img src="'+t.chart+'" style="width:100%;border-radius:var(--rs);border:1px solid var(--border);margin-top:4px;cursor:pointer" onclick="window.open(this.src)" title="عکس فعلی">' : '');
+    (t.chart ? '<img src="'+t.chart+'" style="width:100%;border-radius:var(--rs);border:1px solid var(--border);margin-top:4px;cursor:pointer" onclick="openLightbox(this.src)" title="عکس فعلی">' : '');
 
   document.getElementById('edit-overlay').classList.add('on');
 }
@@ -1249,7 +1274,14 @@ async function saveEdit() {
   function gn(id) { var v = gv(id); return v !== '' ? (parseFloat(v) || null) : null; }
 
   var pairSel = getEtg('e-pair-tg');
-  var pair    = pairSel === 'سایر' ? gv('e-pair-c').trim() : pairSel || t.pair;
+  var pairCustom = gv('e-pair-c').trim();
+  var pair;
+  if (pairSel === 'سایر') {
+    if (!pairCustom) return showToast('نام جفت ارز را وارد کن ❌', 'err');
+    pair = pairCustom;
+  } else {
+    pair = pairSel || t.pair;
+  }
 
   var activeMood = document.querySelector('#e-mood-g .mb.on');
   var newMood    = activeMood ? activeMood.textContent.trim() : t.mood;
@@ -1298,7 +1330,7 @@ async function saveEdit() {
     renderDash();
     showToast('معامله ویرایش شد ✅', 'ok');
   } catch(err) {
-    showToast('خطا در ذخیره ویرایش', 'err');
+    showToast('خطا در ذخیره‌سازی داده‌ها ❌', 'err');
   }
 }
 
